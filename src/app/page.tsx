@@ -46,7 +46,6 @@ export default function Dashboard() {
     volume: '',
   })
 
-  // ✅ Use your backend base URL from environment variable
   const BASE_URL = process.env.NEXT_PUBLIC_API_BASE
 
   useEffect(() => {
@@ -72,7 +71,7 @@ export default function Dashboard() {
 
   const handlePredict = async () => {
     try {
-      const res = await axios.post(`${BASE_URL}/predict`, {
+      const res = await axios.post(`${BASE_URL}/predict/tesla`, {
         open: parseFloat(form.open),
         high: parseFloat(form.high),
         low: parseFloat(form.low),

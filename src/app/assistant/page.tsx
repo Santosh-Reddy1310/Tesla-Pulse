@@ -1,5 +1,7 @@
 'use client'
 
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE
+
 import { useState } from 'react'
 import axios from 'axios'
 import { Card, CardContent } from '@/components/ui/card'
@@ -17,18 +19,15 @@ export default function AssistantPage() {
     setLoading(true)
     setResponse('')
     try {
-      // 1. Fetch live stock data
-      const stockRes = await axios.get('http://127.0.0.1:8000/stock')
-      const stock = stockRes.data
+      const stockRes = await axios.get(`${BASE_URL}/stock`)
+      const stock = stockRes.data.data?.[0]
 
-      // 2. Build context-rich prompt
       const context = `Today, Tesla stock opened at $${stock.open}, peaked at $${stock.high}, dipped to $${stock.low}, and closed at $${stock.close}.`
       const prompt = `${context} Based on this, ${query}`
 
-      // 3. Send to Gemini
-      const res = await axios.post('http://127.0.0.1:8000/chat', { message: prompt }) // ✅ correct key
-      console.log("🔁 Gemini Response:", res.data.response) // ✅ log Gemini response
+      const res = await axios.post(`${BASE_URL}/chat`, { message: prompt })
       const aiReply = res.data.response
+
       setHistory((prev) => [
         ...prev,
         `🧑‍💻 You: ${query}`,
@@ -40,9 +39,8 @@ export default function AssistantPage() {
       setHistory((prev) => [
         ...prev,
         `🧑‍💻 You: ${query}`,
-        '🤖 Gemini: Sorry, something went wrong. Please try again.'
+        '🤖 Gemini: Sorry, something went wrong.'
       ])
-      setResponse('')
       console.error('Chat error:', err)
     } finally {
       setLoading(false)
@@ -54,18 +52,17 @@ export default function AssistantPage() {
       <Card>
         <CardContent className="p-6 space-y-4">
           <h2 className="text-2xl font-semibold">AI Assistant Panel</h2>
-          <div className="space-y-2">
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Ask about Tesla stock, market trends, or anything..."
-              onKeyDown={(e) => e.key === 'Enter' && !loading && handleSend()}
-              disabled={loading}
-            />
-            <Button onClick={handleSend} disabled={loading || !query.trim()}>
-              {loading ? 'Thinking...' : 'Ask Gemini'}
-            </Button>
-          </div>
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Ask about Tesla stock, market trends, or anything..."
+            onKeyDown={(e) => e.key === 'Enter' && !loading && handleSend()}
+            disabled={loading}
+          />
+          <Button onClick={handleSend} disabled={loading || !query.trim()}>
+            {loading ? 'Thinking...' : 'Ask Gemini'}
+          </Button>
+
           <div className="bg-muted p-4 rounded-md space-y-2 max-h-[300px] overflow-y-auto">
             {history.map((line, index) => (
               <p key={index} className="text-sm whitespace-pre-line">
