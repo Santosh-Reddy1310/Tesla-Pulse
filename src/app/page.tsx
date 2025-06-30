@@ -49,6 +49,8 @@ export default function Dashboard() {
   const BASE_URL = process.env.NEXT_PUBLIC_API_BASE
 
   useEffect(() => {
+    console.log('BASE_URL:', BASE_URL)
+
     axios.get(`${BASE_URL}/stock`)
       .then(res => {
         const data = res.data.data?.[0]
@@ -71,6 +73,7 @@ export default function Dashboard() {
 
   const handlePredict = async () => {
     try {
+      console.log('📡 Hitting:', `${BASE_URL}/predict`)
       const res = await axios.post(`${BASE_URL}/predict`, {
         open: parseFloat(form.open),
         high: parseFloat(form.high),
