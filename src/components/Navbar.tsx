@@ -4,15 +4,17 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
-import { Bolt } from 'lucide-react'
+import { Bolt, Menu, X } from 'lucide-react'
+import { useState } from 'react'
 
 export function Navbar() {
   const pathname = usePathname()
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   const navLinks = [
     { name: 'Dashboard', href: '/' },
     { name: 'Compare', href: '/compare' },
-    { name: 'AI Assistant', href: '/assistant' }, // ✅ fixed wrong /ai path
+    { name: 'AI Assistant', href: '/assistant' },
   ]
 
   return (
@@ -24,7 +26,7 @@ export function Navbar() {
           TeslaPulse
         </Link>
 
-        {/* 🔗 Nav Links */}
+        {/* 🔗 Nav Links (Desktop) */}
         <nav className="hidden space-x-4 text-sm font-medium md:flex">
           {navLinks.map((link) => (
             <Link
@@ -40,11 +42,39 @@ export function Navbar() {
           ))}
         </nav>
 
+        {/* Hamburger (Mobile) */}
+        <button
+          className="md:hidden p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          onClick={() => setMobileOpen((open) => !open)}
+          aria-label="Toggle menu"
+        >
+          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+
         {/* 🌓 Dark/Light Mode */}
         <div className="flex items-center space-x-2">
           <ThemeToggle />
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {mobileOpen && (
+        <nav className="md:hidden bg-background border-b px-6 py-4 space-y-2 shadow">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={cn(
+                'block py-2 px-2 rounded transition-colors hover:bg-blue-50 hover:text-primary',
+                pathname === link.href ? 'text-primary font-semibold' : 'text-muted-foreground'
+              )}
+              onClick={() => setMobileOpen(false)}
+            >
+              {link.name}
+            </Link>
+          ))}
+        </nav>
+      )}
     </header>
   )
 }

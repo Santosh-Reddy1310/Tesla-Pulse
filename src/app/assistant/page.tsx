@@ -48,24 +48,30 @@ export default function AssistantPage() {
   }
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-4">
+    <div className="p-4 sm:p-6 max-w-3xl mx-auto space-y-4">
       <Card>
-        <CardContent className="p-6 space-y-4">
-          <h2 className="text-2xl font-semibold">AI Assistant Panel</h2>
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Ask about Tesla stock, market trends, or anything..."
-            onKeyDown={(e) => e.key === 'Enter' && !loading && handleSend()}
-            disabled={loading}
-          />
-          <Button onClick={handleSend} disabled={loading || !query.trim()}>
-            {loading ? 'Thinking...' : 'Ask Gemini'}
-          </Button>
-
-          <div className="bg-muted p-4 rounded-md space-y-2 max-h-[300px] overflow-y-auto">
+        <CardContent className="p-4 sm:p-6 space-y-4">
+          <h2 className="text-xl sm:text-2xl font-semibold">AI Assistant Panel</h2>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Ask about Tesla stock, market trends, or anything..."
+              onKeyDown={(e) => e.key === 'Enter' && !loading && handleSend()}
+              disabled={loading}
+              className="flex-1"
+            />
+            <Button
+              onClick={handleSend}
+              disabled={loading || !query.trim()}
+              className="w-full sm:w-auto"
+            >
+              {loading ? 'Thinking...' : 'Ask Gemini'}
+            </Button>
+          </div>
+          <div className="bg-muted p-3 sm:p-4 rounded-md space-y-2 max-h-[300px] overflow-y-auto">
             {history.map((line, index) => (
-              <p key={index} className="text-sm whitespace-pre-line">
+              <p key={index} className="text-sm whitespace-pre-line break-words">
                 {line}
               </p>
             ))}

@@ -35,44 +35,52 @@ export default function ComparePage() {
   }, [BASE_URL])
 
   return (
-    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
       {data.map((stock, index) => (
-        <Card key={stock.symbol} className={index === 2 ? 'md:col-span-2' : ''}>
-          <CardContent className="p-6 space-y-4">
-            <h2 className="text-lg md:text-xl font-semibold">
+        <Card
+          key={stock.symbol}
+          className={index === 2 ? 'md:col-span-2' : ''}
+        >
+          <CardContent className="p-4 sm:p-6 space-y-4">
+            <h2 className="text-base sm:text-lg md:text-xl font-semibold">
               {stock.symbol} Stock
             </h2>
-            <Line
-              data={{
-                labels: ['Open', 'High', 'Low', 'Close'],
-                datasets: [
-                  {
-                    label: stock.symbol,
-                    data: [stock.open, stock.high, stock.low, stock.close],
-                    borderColor:
-                      stock.symbol === 'TSLA'
-                        ? '#f87171'
-                        : stock.symbol === 'RIVN'
-                        ? '#34d399'
-                        : '#60a5fa',
-                    tension: 0.3,
-                    fill: false,
-                  },
-                ],
-              }}
-              options={{
-                responsive: true,
-                plugins: { legend: { display: true } },
-                scales: {
-                  y: {
-                    beginAtZero: false,
-                    ticks: {
-                      callback: (value: number | string) => `$${value}`,
+            <div className="w-full overflow-x-auto">
+              <div className="min-w-[300px] h-[220px] sm:h-[250px]">
+                <Line
+                  data={{
+                    labels: ['Open', 'High', 'Low', 'Close'],
+                    datasets: [
+                      {
+                        label: stock.symbol,
+                        data: [stock.open, stock.high, stock.low, stock.close],
+                        borderColor:
+                          stock.symbol === 'TSLA'
+                            ? '#f87171'
+                            : stock.symbol === 'RIVN'
+                            ? '#34d399'
+                            : '#60a5fa',
+                        tension: 0.3,
+                        fill: false,
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } },
+                    scales: {
+                      y: {
+                        beginAtZero: false,
+                        ticks: {
+                          callback: (value: number | string) => `$${value}`,
+                        },
+                      },
                     },
-                  },
-                },
-              }}
-            />
+                  }}
+                />
+              </div>
+            </div>
           </CardContent>
         </Card>
       ))}
