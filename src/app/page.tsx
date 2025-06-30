@@ -1,103 +1,179 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import { useEffect, useState } from 'react'
+import axios from 'axios'
+import { Card, CardContent } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Line } from 'react-chartjs-2'
+import {
+  Chart as ChartJS,
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  Tooltip,
+  Legend
+} from 'chart.js'
+
+ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend)
+
+type StockData = {
+  datetime: string
+  open: number
+  high: number
+  low: number
+  close: number
+  volume: number
+}
+
+type FormState = {
+  open: string
+  high: string
+  low: string
+  volume: string
+}
+
+export default function Dashboard() {
+  const [stockData, setStockData] = useState<StockData | null>(null)
+  const [prediction, setPrediction] = useState<number | null>(null)
+
+  const [form, setForm] = useState<FormState>({
+    open: '',
+    high: '',
+    low: '',
+    volume: '',
+  })
+
+  useEffect(() => {
+    axios.get('http://127.0.0.1:8000/stock')
+      .then(res => {
+        const data = res.data.data?.[0] // ✅ fix: get the first item from array
+        if (!data) return
+
+        setStockData(data)
+        setForm({
+          open: data.open.toString(),
+          high: data.high.toString(),
+          low: data.low.toString(),
+          volume: data.volume.toString()
+        })
+      })
+      .catch(err => console.log(err))
+  }, [])
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value })
+  }
+
+  const handlePredict = async () => {
+    const res = await axios.post('http://127.0.0.1:8000/predict', {
+      open: parseFloat(form.open),
+      high: parseFloat(form.high),
+      low: parseFloat(form.low),
+      volume: parseFloat(form.volume)
+    })
+    setPrediction(res.data.predicted_close)
+  }
+
+  const chartData = {
+    labels: ['Open', 'High', 'Low', 'Close'],
+    datasets: [
+      {
+        label: 'TSLA Price (Latest)',
+        data: stockData ? [stockData.open, stockData.high, stockData.low, stockData.close] : [],
+        borderColor: 'rgba(59, 130, 246, 1)',
+        backgroundColor: 'rgba(59, 130, 246, 0.15)',
+        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+        pointBorderColor: '#fff',
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        fill: true,
+        tension: 0.4,
+      },
+    ],
+  }
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: {
+      duration: 800,
+      easing: 'easeOutQuart',
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        enabled: true,
+        callbacks: {
+          label: (context: any) => `$${context.parsed.y}`,
+        },
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: false,
+        grid: { color: '#e5e7eb' },
+        ticks: { color: '#4B5563', font: { size: 13 } },
+      },
+      x: {
+        grid: { display: false },
+        ticks: { color: '#4B5563', font: { size: 13 } },
+      },
+    },
+  }
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <h2 className="text-xl font-semibold">Tesla Stock Overview</h2>
+          {stockData && (
+            <ul className="space-y-1 text-sm">
+              <li><strong>Date:</strong> {stockData.datetime}</li>
+              <li><strong>Open:</strong> ${stockData.open}</li>
+              <li><strong>High:</strong> ${stockData.high}</li>
+              <li><strong>Low:</strong> ${stockData.low}</li>
+              <li><strong>Close:</strong> ${stockData.close}</li>
+              <li><strong>Volume:</strong> {stockData.volume?.toLocaleString()}</li>
+            </ul>
+          )}
+          <h3 className="text-sm font-medium text-muted-foreground">📊 Price Trend</h3>
+          <div className="w-full mt-4 h-[250px]">
+            {stockData ? (
+              <Line data={chartData} options={chartOptions as any} />
+            ) : (
+              <div className="flex items-center justify-center h-full text-gray-400">No data</div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <h2 className="text-xl font-semibold">Predict Next Day Close</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {['open', 'high', 'low', 'volume'].map((field) => (
+              <div key={field}>
+                <Label className="capitalize">{field}</Label>
+                <Input
+                  type="number"
+                  name={field}
+                  value={form[field as keyof FormState]}
+                  onChange={handleChange}
+                />
+              </div>
+            ))}
+          </div>
+          <Button onClick={handlePredict}>Predict</Button>
+          {prediction !== null && (
+            <p className="text-green-600 text-lg font-semibold">
+              Predicted Close: ${prediction}
+            </p>
+          )}
+        </CardContent>
+      </Card>
     </div>
-  );
+  )
 }
