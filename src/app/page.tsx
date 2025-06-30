@@ -71,7 +71,7 @@ export default function Dashboard() {
 
   const handlePredict = async () => {
     try {
-      const res = await axios.post(`${BASE_URL}/predict/tesla`, {
+      const res = await axios.post(`${BASE_URL}/predict`, {
         open: parseFloat(form.open),
         high: parseFloat(form.high),
         low: parseFloat(form.low),
