@@ -1,7 +1,5 @@
 'use client'
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE
-
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { Card, CardContent } from '@/components/ui/card'
@@ -28,6 +26,7 @@ type StockSnapshot = {
 
 export default function ComparePage() {
   const [data, setData] = useState<StockSnapshot[]>([])
+  const BASE_URL = process.env.NEXT_PUBLIC_API_BASE
 
   useEffect(() => {
     axios.get(`${BASE_URL}/compare`)

@@ -1,7 +1,5 @@
 'use client'
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE
-
 import { useState } from 'react'
 import axios from 'axios'
 import { Card, CardContent } from '@/components/ui/card'
@@ -13,6 +11,8 @@ export default function AssistantPage() {
   const [response, setResponse] = useState('')
   const [history, setHistory] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
+
+  const BASE_URL = process.env.NEXT_PUBLIC_API_BASE
 
   const handleSend = async () => {
     if (!query.trim()) return
