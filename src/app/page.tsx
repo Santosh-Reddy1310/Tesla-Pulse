@@ -46,10 +46,13 @@ export default function Dashboard() {
     volume: '',
   })
 
+  // ✅ Use your backend base URL from environment variable
+  const BASE_URL = process.env.NEXT_PUBLIC_API_BASE
+
   useEffect(() => {
-    axios.get('http://127.0.0.1:8000/stock')
+    axios.get(`${BASE_URL}/stock`)
       .then(res => {
-        const data = res.data.data?.[0] // ✅ fix: get the first item from array
+        const data = res.data.data?.[0]
         if (!data) return
 
         setStockData(data)
@@ -60,21 +63,25 @@ export default function Dashboard() {
           volume: data.volume.toString()
         })
       })
-      .catch(err => console.log(err))
-  }, [])
+      .catch(err => console.error('Error fetching stock data:', err))
+  }, [BASE_URL])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
   const handlePredict = async () => {
-    const res = await axios.post('http://127.0.0.1:8000/predict', {
-      open: parseFloat(form.open),
-      high: parseFloat(form.high),
-      low: parseFloat(form.low),
-      volume: parseFloat(form.volume)
-    })
-    setPrediction(res.data.predicted_close)
+    try {
+      const res = await axios.post(`${BASE_URL}/predict`, {
+        open: parseFloat(form.open),
+        high: parseFloat(form.high),
+        low: parseFloat(form.low),
+        volume: parseFloat(form.volume)
+      })
+      setPrediction(res.data.predicted_close)
+    } catch (err) {
+      console.error('Prediction error:', err)
+    }
   }
 
   const chartData = {
